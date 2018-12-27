@@ -165,7 +165,7 @@ func printResults(words [][]string, inp string) {
 }
 
 func main() {
-	dictPtr := flag.String("dict", "dict.txt", "Dictionary file location.")
+	dictPtr := flag.String("dict", "dictionaries/merged.txt", "Dictionary file location.")
 	flag.Parse()
 
 	var words = importWords(*dictPtr)
