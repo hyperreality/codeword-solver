@@ -31,6 +31,7 @@ func importWords(filename string) [][]string {
 	return words
 }
 
+// Filter down to all the words where just the specified letters match
 func lettersCorrect(inp string, words [][]string) []string {
 	var matched []string
 
@@ -53,6 +54,8 @@ func lettersCorrect(inp string, words [][]string) []string {
 	return matched
 }
 
+// Filter down to words where wildcards positions correspond to the same
+// letters
 func wildcardsUnique(inp string, words []string) []string {
 	var matched []string
 	var wildcards []int
@@ -88,6 +91,7 @@ func wildcardsUnique(inp string, words []string) []string {
 	return matched
 }
 
+// Filter down to words where wildcard letters do not overlap with specified or "used" letters
 func numberPatterns(inp string, words []string) []string {
 	var matched []string
 	var inpNumsOnly = inp
@@ -126,6 +130,7 @@ func numberPatterns(inp string, words []string) []string {
 	return matched
 }
 
+// Canonicalise special chars to dots for wildcard input positions
 func cleanInput(inp string) string {
 	inp = strings.TrimSpace(strings.ToLower(inp))
 
@@ -133,35 +138,38 @@ func cleanInput(inp string) string {
 	return reg.ReplaceAllString(inp, ".")
 }
 
-func printResults(words [][]string, inp string) {
+func singlePatternSearch(words [][]string, inp string) string {
 	inp = cleanInput(inp)
+    var sb strings.Builder
 
 	matchedLetters := lettersCorrect(inp, words)
 	if len(matchedLetters) == 0 {
-		fmt.Println("No results found.")
-	} else {
-		uniqueWildcards := wildcardsUnique(inp, matchedLetters)
-
-		if len(uniqueWildcards) == 0 {
-			fmt.Println("No exact results found, printing closest matches: ")
-			for _, word := range matchedLetters {
-				fmt.Println(word)
-			}
-		} else {
-			matchedNums := numberPatterns(inp, uniqueWildcards)
-
-			if len(matchedNums) == 0 {
-				fmt.Println("No exact results found, printing closest matches: ")
-				for _, word := range uniqueWildcards {
-					fmt.Println(word)
-				}
-			} else {
-				for _, word := range matchedNums {
-					fmt.Println(word)
-				}
-			}
-		}
+        sb.WriteString("> No results found.")
+        return sb.String()
 	}
+
+    uniqueWildcardsWords := wildcardsUnique(inp, matchedLetters)
+    if len(uniqueWildcardsWords) == 0 {
+        sb.WriteString("> No exact results found, showing closest matches:\n")
+        for _, word := range matchedLetters {
+            sb.WriteString(word + "\n")
+        }
+        return sb.String()
+    } 
+
+    matchedNumsWords := numberPatterns(inp, uniqueWildcardsWords)
+    if len(matchedNumsWords) == 0 {
+        sb.WriteString("> No exact results found, printing closest matches:\n")
+        for _, word := range uniqueWildcardsWords {
+            sb.WriteString(word + "\n")
+        }
+        return sb.String()
+    } 
+
+    for _, word := range matchedNumsWords {
+        sb.WriteString(word + "\n")
+    }
+    return sb.String()
 }
 
 func main() {
@@ -169,6 +177,7 @@ func main() {
 	flag.Parse()
 
 	var words = importWords(*dictPtr)
+    var output string
 
 	if len(flag.Args()) == 0 {
 		for {
@@ -177,11 +186,12 @@ func main() {
 			text, _ := reader.ReadString('\n')
 			if len(text) > 1 {
 				text = text[:len(text)-1]
-				printResults(words, text)
-				fmt.Println()
+				output = singlePatternSearch(words, text)
+                fmt.Println(output)
 			}
 		}
 	} else {
-		printResults(words, flag.Arg(0))
+		output = singlePatternSearch(words, flag.Arg(0))
+        fmt.Println(output)
 	}
 }
