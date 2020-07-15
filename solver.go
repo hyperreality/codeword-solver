@@ -8,7 +8,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"strconv"
 )
 
 func importWords(filename string) [][]string {
@@ -23,7 +22,9 @@ func importWords(filename string) [][]string {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		words[len(line)-1] = append(words[len(line)-1], line)
+        if len(line) <= 30 {
+            words[len(line)-1] = append(words[len(line)-1], line)
+        }
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
@@ -168,7 +169,7 @@ func singlePatternSearch(words [][]string, inp string) string {
 // Specify the zero-indexed positions where they overlap
 //
 // This function is truly horrific and needs a cleanup
-func doublePatternSearch(words [][]string, pattern1 string, pattern2 string, position1 int, position2 int) string {
+func doublePatternSearch(words [][]string, pattern1 string, pattern2 string) string {
     var sb strings.Builder
 
     results1 := singlePatternSearch(words, pattern1)
@@ -187,10 +188,9 @@ func doublePatternSearch(words [][]string, pattern1 string, pattern2 string, pos
     splat2 := strings.Split(results2, "\n")
 
     for _, word1 := range splat1 {
-        if position1 >= len(word1) {
+        if len(word1) == 0 {
             continue
         }
-
         // Match the pattern back to the letters
         // So we can check word2 uses the same letters for numbers
         letterNumber := make(map[byte]int)
@@ -210,12 +210,7 @@ func doublePatternSearch(words [][]string, pattern1 string, pattern2 string, pos
         }
 
         for _, word2 := range splat2 {
-            if position2 >= len(word2) {
-                continue
-            }
-
-            // Didn't intersect
-            if word1[position1] != word2[position2] {
+            if len(word2) == 0 {
                 continue
             }
 
@@ -277,33 +272,10 @@ func singlePatternWrapper(words [][]string, pattern string) {
     fmt.Print(output)
 }
 
-func doublePatternWrapper(words [][]string, pattern1 string, pattern2 string, pos1 string, pos2 string) {
+func doublePatternWrapper(words [][]string, pattern1 string, pattern2 string) {
 	pattern1 = canonicaliseInput(pattern1)
 	pattern2 = canonicaliseInput(pattern2)
-
-    position1, err := strconv.Atoi(pos1)
-    if err != nil {
-        fmt.Println("Invalid command line arguments specified, please read the README")
-        return
-    }
-    position2, err := strconv.Atoi(pos2)
-    if err != nil {
-        fmt.Println("Invalid command line arguments specified, please read the README")
-        return
-    }
-    position1 -= 1
-    position2 -= 1
-
-    if position1 < 0 || position1 >= len(pattern1) {
-        fmt.Println("Intersection position for word 1 is outside the word")
-        return
-    }
-    if position2 < 0 || position2 >= len(pattern2) {
-        fmt.Println("Intersection position for word 2 is outside the word")
-        return
-    }
-
-    output := doublePatternSearch(words, pattern1, pattern2, position1, position2)
+    output := doublePatternSearch(words, pattern1, pattern2)
     fmt.Print(output)
 }
 
@@ -324,9 +296,7 @@ func main() {
                 if len(splat) == 1 {
                     singlePatternWrapper(words, text)
                 } else if len(splat) == 2 {
-                    doublePatternWrapper(words, splat[0], splat[1], "1", "1")
-                } else if len(splat) == 4 {
-                    doublePatternWrapper(words, splat[0], splat[1], splat[2], splat[3])
+                    doublePatternWrapper(words, splat[0], splat[1])
                 } else {
                     fmt.Println("Invalid number of command line arguments specified, please read the README")
                 }
@@ -335,9 +305,7 @@ func main() {
 	} else if len(flag.Args()) == 1 {
         singlePatternWrapper(words, flag.Arg(0))
 	} else if len(flag.Args()) == 2 {
-		doublePatternWrapper(words, flag.Arg(0), flag.Arg(1), "1", "1")
-    } else if len(flag.Args()) == 4 {
-		doublePatternWrapper(words, flag.Arg(0), flag.Arg(1), flag.Arg(2), flag.Arg(3))
+		doublePatternWrapper(words, flag.Arg(0), flag.Arg(1))
     } else {
         panic("Invalid number of command line arguments specified, please read the README")
     }

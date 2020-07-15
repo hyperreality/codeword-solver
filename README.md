@@ -37,13 +37,10 @@ Supply a custom dictionary file:
 
 ### Search for intersecting patterns
 
-The solver also supports searching for intersecting patterns using the following syntax:
+The solver also supports searching for multiple patterns together using the following semantics:
 
 ```
-> ./codeword-solver .osmos m....o..sm 4 10
+> ./codeword-solver .os1os 1....o..s1
 cosmos:metabolism
 ```
 
-We are finding words which intersect on the 4th character of .osmos (m) and the 10th character of m....o..sm
-
-If no positions are specified, it defaults to using the first letter of each word.
