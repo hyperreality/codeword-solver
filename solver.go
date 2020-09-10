@@ -22,9 +22,9 @@ func importWords(filename string) [][]string {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-        if len(line) <= 30 {
-            words[len(line)-1] = append(words[len(line)-1], line)
-        }
+		if len(line) <= 30 {
+			words[len(line)-1] = append(words[len(line)-1], line)
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
@@ -133,36 +133,36 @@ func numberPatterns(inp string, words []string) []string {
 }
 
 func singlePatternSearch(words [][]string, inp string) string {
-    var sb strings.Builder
+	var sb strings.Builder
 
 	matchedLetters := lettersCorrect(inp, words)
 	if len(matchedLetters) == 0 {
-        sb.WriteString("> No results found.\n")
-        return sb.String()
+		sb.WriteString("> No results found.\n")
+		return sb.String()
 	}
 
-    uniqueWildcardsWords := wildcardsUnique(inp, matchedLetters)
-    if len(uniqueWildcardsWords) == 0 {
-        sb.WriteString("> No exact results found, showing closest matches:\n")
-        for _, word := range matchedLetters {
-            sb.WriteString(word + "\n")
-        }
-        return sb.String()
-    } 
+	uniqueWildcardsWords := wildcardsUnique(inp, matchedLetters)
+	if len(uniqueWildcardsWords) == 0 {
+		sb.WriteString("> No exact results found, showing closest matches:\n")
+		for _, word := range matchedLetters {
+			sb.WriteString(word + "\n")
+		}
+		return sb.String()
+	}
 
-    matchedNumsWords := numberPatterns(inp, uniqueWildcardsWords)
-    if len(matchedNumsWords) == 0 {
-        sb.WriteString("> No exact results found, printing closest matches:\n")
-        for _, word := range uniqueWildcardsWords {
-            sb.WriteString(word + "\n")
-        }
-        return sb.String()
-    } 
+	matchedNumsWords := numberPatterns(inp, uniqueWildcardsWords)
+	if len(matchedNumsWords) == 0 {
+		sb.WriteString("> No exact results found, printing closest matches:\n")
+		for _, word := range uniqueWildcardsWords {
+			sb.WriteString(word + "\n")
+		}
+		return sb.String()
+	}
 
-    for _, word := range matchedNumsWords {
-        sb.WriteString(word + "\n")
-    }
-    return sb.String()
+	for _, word := range matchedNumsWords {
+		sb.WriteString(word + "\n")
+	}
+	return sb.String()
 }
 
 // Search for two overlapping words in the codeword
@@ -170,92 +170,97 @@ func singlePatternSearch(words [][]string, inp string) string {
 //
 // This function is truly horrific and needs a cleanup
 func doublePatternSearch(words [][]string, pattern1 string, pattern2 string) string {
-    var sb strings.Builder
+	var sb strings.Builder
 
-    results1 := singlePatternSearch(words, pattern1)
-    if strings.Contains(results1, ">") {
-        sb.WriteString("> No results found.\n")
-        return sb.String()
-    }
-    results2 := singlePatternSearch(words, pattern2)
-    if strings.Contains(results2, ">") {
-        sb.WriteString("> No results found.\n")
-        return sb.String()
-    }
+	results1 := singlePatternSearch(words, pattern1)
+	if strings.Contains(results1, ">") {
+		sb.WriteString("> No results found.\n")
+		return sb.String()
+	}
+	results2 := singlePatternSearch(words, pattern2)
+	if strings.Contains(results2, ">") {
+		sb.WriteString("> No results found.\n")
+		return sb.String()
+	}
 
-    // TODO: refactor to use arrays instead
-    splat1 := strings.Split(results1, "\n")
-    splat2 := strings.Split(results2, "\n")
+	// TODO: refactor to use arrays instead
+	splat1 := strings.Split(results1, "\n")
+	splat2 := strings.Split(results2, "\n")
 
-    for _, word1 := range splat1 {
-        if len(word1) == 0 {
-            continue
-        }
-        // Match the pattern back to the letters
-        // So we can check word2 uses the same letters for numbers
-        letterNumber := make(map[byte]int)
-        numberLetter := make(map[int]byte)
-        usedLetters := make(map[byte]int)
-        for i, char := range pattern1 {
+	for _, word1 := range splat1 {
+		if len(word1) == 0 {
+			continue
+		}
+		// Match the pattern back to the letters
+		// So we can check word2 uses the same letters for numbers
+		letterNumber := make(map[byte]int)
+		numberLetter := make(map[int]byte)
+		usedLetters := make(map[byte]int)
+		for i, char := range pattern1 {
 			if char >= '1' && char <= '9' {
 				var num = int(char)
 				letterNumber[word1[i]] = num
 				numberLetter[num] = word1[i]
 			} else {
 				letterNumber[word1[i]] = -1
-                if char != '.' {
-                    usedLetters[word1[i]] = 1
-                }
+				if char != '.' {
+					usedLetters[word1[i]] = 1
+				}
 			}
-        }
+		}
 
-        for _, word2 := range splat2 {
-            if len(word2) == 0 {
-                continue
-            }
+		for _, word2 := range splat2 {
+			if len(word2) == 0 {
+				continue
+			}
 
-            // Ensure patterns are consistent with first word
-            var match = true
-            for i, char := range pattern2 {
-                if char >= '1' && char <= '9' {
-                    var num = int(char)
-                    if val, ok := numberLetter[num]; ok && val != word2[i] {
-                    	match = false
-                    	break
-                    }
-                    if val, ok := letterNumber[word2[i]]; ok && val != num {
-                    	match = false
-                    	break
-                    }
-                } else {
-                    if val, ok := letterNumber[word2[i]]; ok && val != -1 {
-                    	match = false
-                    	break
-                    }
+			// Ensure patterns are consistent with first word
+			var match = true
+			for i, char := range pattern2 {
+				if char >= '1' && char <= '9' {
+					var num = int(char)
+					if val, ok := numberLetter[num]; ok && val != word2[i] {
+						match = false
+						break
+					}
+					if val, ok := letterNumber[word2[i]]; ok && val != num {
+						match = false
+						break
+					}
+				} else {
+					if val, ok := letterNumber[word2[i]]; ok && val != -1 {
+						match = false
+						break
+					}
 
-                    // If wildcard then it can't be a letter used directly in word1
-                    if char == '.' {
-                        if val, ok := usedLetters[word2[i]]; ok && val != -1 {
-                            match = false
-                            break
-                        }
-                    }
-                }
-            }
+					// If wildcard then it can't be a letter used directly in word1
+					if char == '.' {
+						if val, ok := usedLetters[word2[i]]; ok && val != -1 {
+							match = false
+							break
+						}
+						// or a letter used in a number in first word
+						if _, ok := letterNumber[word2[i]]; ok {
+							match = false
+							break
+						}
+					}
+				}
+			}
 
-            if match == false {
-                continue
-            }
+			if match == false {
+				continue
+			}
 
-            sb.WriteString(word1 + ":" + word2 + "\n")
-        }
-    }
+			sb.WriteString(word1 + ":" + word2 + "\n")
+		}
+	}
 
-    if sb.Len() == 0 {
-        sb.WriteString("> No results found.\n")
-    }
+	if sb.Len() == 0 {
+		sb.WriteString("> No results found.\n")
+	}
 
-    return sb.String()
+	return sb.String()
 }
 
 // Canonicalise special chars to dots for wildcard input positions
@@ -268,15 +273,15 @@ func canonicaliseInput(inp string) string {
 
 func singlePatternWrapper(words [][]string, pattern string) {
 	pattern = canonicaliseInput(pattern)
-    output := singlePatternSearch(words, pattern)
-    fmt.Print(output)
+	output := singlePatternSearch(words, pattern)
+	fmt.Print(output)
 }
 
 func doublePatternWrapper(words [][]string, pattern1 string, pattern2 string) {
 	pattern1 = canonicaliseInput(pattern1)
 	pattern2 = canonicaliseInput(pattern2)
-    output := doublePatternSearch(words, pattern1, pattern2)
-    fmt.Print(output)
+	output := doublePatternSearch(words, pattern1, pattern2)
+	fmt.Print(output)
 }
 
 func main() {
@@ -292,21 +297,21 @@ func main() {
 			text, _ := reader.ReadString('\n')
 			if len(text) > 1 {
 				text = text[:len(text)-1]
-                splat := strings.Fields(text)
-                if len(splat) == 1 {
-                    singlePatternWrapper(words, text)
-                } else if len(splat) == 2 {
-                    doublePatternWrapper(words, splat[0], splat[1])
-                } else {
-                    fmt.Println("Invalid number of command line arguments specified, please read the README")
-                }
+				splat := strings.Fields(text)
+				if len(splat) == 1 {
+					singlePatternWrapper(words, text)
+				} else if len(splat) == 2 {
+					doublePatternWrapper(words, splat[0], splat[1])
+				} else {
+					fmt.Println("Invalid number of command line arguments specified, please read the README")
+				}
 			}
 		}
 	} else if len(flag.Args()) == 1 {
-        singlePatternWrapper(words, flag.Arg(0))
+		singlePatternWrapper(words, flag.Arg(0))
 	} else if len(flag.Args()) == 2 {
 		doublePatternWrapper(words, flag.Arg(0), flag.Arg(1))
-    } else {
-        panic("Invalid number of command line arguments specified, please read the README")
-    }
+	} else {
+		panic("Invalid number of command line arguments specified, please read the README")
+	}
 }
