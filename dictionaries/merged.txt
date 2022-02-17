@@ -51444,6 +51444,8 @@ crewing
 crewless
 crewman
 crewmen
+crewneck
+crewnecks
 crews
 crib
 cribbage
@@ -78330,6 +78332,7 @@ facemaker
 facemaking
 faceman
 facemark
+facepalm
 facepiece
 faceplate
 facer
@@ -215868,6 +215871,7 @@ spritsail
 sprittail
 sprittie
 spritty
+spritzer
 sproat
 sprocket
 sprockets
@@ -269158,6 +269162,7 @@ zucchinis
 zudda
 zugtierlast
 zugtierlaster
+zugzwang
 zuisin
 zulu
 zulus
