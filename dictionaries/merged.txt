@@ -210140,6 +210140,7 @@ sleepwalk
 sleepwalker
 sleepwalkers
 sleepwalking
+sleepwalks
 sleepward
 sleepwear
 sleepwort

@@ -182970,6 +182970,7 @@ sleepwaking
 sleepwalk
 sleepwalker
 sleepwalking
+sleepwalks
 sleepward
 sleepwort
 sleepy
