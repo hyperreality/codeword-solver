@@ -132,62 +132,56 @@ func numberPatterns(inp string, words []string) []string {
 	return matched
 }
 
-func singlePatternSearch(words [][]string, inp string) string {
-	var sb strings.Builder
+func singlePatternSearch(words [][]string, inp string) []string {
+	output := []string{}
 
 	matchedLetters := lettersCorrect(inp, words)
 	if len(matchedLetters) == 0 {
-		sb.WriteString("> No results found.\n")
-		return sb.String()
+		output = append(output, "> No exact results found, printing closest matches:\n")
+		return output
 	}
 
 	uniqueWildcardsWords := wildcardsUnique(inp, matchedLetters)
 	if len(uniqueWildcardsWords) == 0 {
-		sb.WriteString("> No exact results found, showing closest matches:\n")
+		output = append(output, "> No exact results found, printing closest matches:\n")
 		for _, word := range matchedLetters {
-			sb.WriteString(word + "\n")
+			output = append(output, word)
 		}
-		return sb.String()
+		return output
 	}
 
 	matchedNumsWords := numberPatterns(inp, uniqueWildcardsWords)
 	if len(matchedNumsWords) == 0 {
-		sb.WriteString("> No exact results found, printing closest matches:\n")
+		output = append(output, "> No exact results found, printing closest matches:\n")
 		for _, word := range uniqueWildcardsWords {
-			sb.WriteString(word + "\n")
+			output = append(output, word)
 		}
-		return sb.String()
+		return output
 	}
 
 	for _, word := range matchedNumsWords {
-		sb.WriteString(word + "\n")
+		output = append(output, word)
 	}
-	return sb.String()
+	return output
 }
 
 // Search for two overlapping words in the codeword
 // Specify the zero-indexed positions where they overlap
 //
 // This function is truly horrific and needs a cleanup
-func doublePatternSearch(words [][]string, pattern1 string, pattern2 string) string {
-	var sb strings.Builder
+func doublePatternSearch(words [][]string, pattern1 string, pattern2 string) []string {
+	output := []string{}
 
 	results1 := singlePatternSearch(words, pattern1)
-	if strings.Contains(results1, ">") {
-		sb.WriteString("> No results found.\n")
-		return sb.String()
+	if strings.Contains(results1[0], ">") {
+		return []string{}
 	}
 	results2 := singlePatternSearch(words, pattern2)
-	if strings.Contains(results2, ">") {
-		sb.WriteString("> No results found.\n")
-		return sb.String()
+	if strings.Contains(results2[0], ">") {
+		return []string{}
 	}
 
-	// TODO: refactor to use arrays instead
-	splat1 := strings.Split(results1, "\n")
-	splat2 := strings.Split(results2, "\n")
-
-	for _, word1 := range splat1 {
+	for _, word1 := range results1 {
 		if len(word1) == 0 {
 			continue
 		}
@@ -209,7 +203,7 @@ func doublePatternSearch(words [][]string, pattern1 string, pattern2 string) str
 			}
 		}
 
-		for _, word2 := range splat2 {
+		for _, word2 := range results2 {
 			if len(word2) == 0 {
 				continue
 			}
@@ -235,10 +229,6 @@ func doublePatternSearch(words [][]string, pattern1 string, pattern2 string) str
 
 					// If wildcard then it can't be a letter used directly in word1
 					if char == '.' {
-						if val, ok := usedLetters[word2[i]]; ok && val != -1 {
-							match = false
-							break
-						}
 						// or a letter used in a number in first word
 						if _, ok := letterNumber[word2[i]]; ok {
 							match = false
@@ -252,15 +242,12 @@ func doublePatternSearch(words [][]string, pattern1 string, pattern2 string) str
 				continue
 			}
 
-			sb.WriteString(word1 + ":" + word2 + "\n")
+			correct_words := fmt.Sprintf("%s:%s", word1, word2)
+			output = append(output, correct_words)
 		}
 	}
 
-	if sb.Len() == 0 {
-		sb.WriteString("> No results found.\n")
-	}
-
-	return sb.String()
+	return output
 }
 
 // Canonicalise special chars to dots for wildcard input positions
@@ -271,17 +258,37 @@ func canonicaliseInput(inp string) string {
 	return reg.ReplaceAllString(inp, ".")
 }
 
-func singlePatternWrapper(words [][]string, pattern string) {
+func singlePatternWrapper(words [][]string, pattern string) []string {
 	pattern = canonicaliseInput(pattern)
-	output := singlePatternSearch(words, pattern)
-	fmt.Print(output)
+	return singlePatternSearch(words, pattern)
 }
 
-func doublePatternWrapper(words [][]string, pattern1 string, pattern2 string) {
+func doublePatternWrapper(words [][]string, pattern1 string, pattern2 string) []string {
 	pattern1 = canonicaliseInput(pattern1)
 	pattern2 = canonicaliseInput(pattern2)
-	output := doublePatternSearch(words, pattern1, pattern2)
-	fmt.Print(output)
+	output1 := doublePatternSearch(words, pattern1, pattern2)
+	output2 := doublePatternSearch(words, pattern2, pattern1)
+
+	output2_flipped := []string{}
+	for _, word := range output2 {
+		splat := strings.Split(word, ":")
+		correct_words := fmt.Sprintf("%s:%s", splat[1], splat[0])
+		output2_flipped = append(output2_flipped, correct_words)
+	}
+
+	return intersection(output1, output2_flipped)
+}
+
+func printResults(results []string) {
+	var sb strings.Builder
+	if len(results) == 0 {
+		sb.WriteString("> No results found.\n")
+	} else {
+		for _, words := range results {
+			sb.WriteString(words + "\n")
+		}
+	}
+	fmt.Print(sb.String())
 }
 
 func main() {
@@ -299,18 +306,18 @@ func main() {
 				text = text[:len(text)-1]
 				splat := strings.Fields(text)
 				if len(splat) == 1 {
-					singlePatternWrapper(words, text)
+					printResults(singlePatternWrapper(words, text))
 				} else if len(splat) == 2 {
-					doublePatternWrapper(words, splat[0], splat[1])
+					printResults(doublePatternWrapper(words, splat[0], splat[1]))
 				} else {
 					fmt.Println("Invalid number of command line arguments specified, please read the README")
 				}
 			}
 		}
 	} else if len(flag.Args()) == 1 {
-		singlePatternWrapper(words, flag.Arg(0))
+		printResults(singlePatternWrapper(words, flag.Arg(0)))
 	} else if len(flag.Args()) == 2 {
-		doublePatternWrapper(words, flag.Arg(0), flag.Arg(1))
+		printResults(doublePatternWrapper(words, flag.Arg(0), flag.Arg(1)))
 	} else {
 		panic("Invalid number of command line arguments specified, please read the README")
 	}
