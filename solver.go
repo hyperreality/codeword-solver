@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+    "sort"
 	"strings"
 )
 
@@ -276,7 +277,9 @@ func doublePatternWrapper(words [][]string, pattern1 string, pattern2 string) []
 		output2_flipped = append(output2_flipped, correct_words)
 	}
 
-	return intersection(output1, output2_flipped)
+    intersected := intersection(output1, output2_flipped)
+    sort.Strings(intersected)
+    return intersected
 }
 
 func printResults(results []string) {
