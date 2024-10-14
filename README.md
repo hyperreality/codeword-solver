@@ -1,6 +1,6 @@
 # Codeword Solver
 
-CLI version of [codewordsolver.com](https://codewordsolver.com)
+Solves codeword puzzles that are found in newspapers, e.g. https://puzzles.independent.co.uk/games/independent-codeword
 
 ### Build
 
